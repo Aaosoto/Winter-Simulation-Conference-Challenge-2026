@@ -1,0 +1,9 @@
+Route,Name,Avg Capacity TEU,Avg Carried TEU,Utilization
+S1,Asia-Europe-NorthEurope,"189,182","12,989",6.87%
+S2,Intra-EastAsia,"12,327",311,2.52%
+S3,SEA-Feeder,"6,987",238,3.40%
+S4,Transpacific-WestCoast,"126,589","5,685",4.49%
+S5,Asia-US-East,"115,006","3,684",3.20%
+S6,Transatlantic-SouthConnector,"22,612",878,3.88%
+S7,IndianOcean-MiddleEast,"7,427",454,6.11%
+TOTAL,,"480,132","24,238",5.05%
