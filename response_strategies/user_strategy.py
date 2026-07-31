@@ -7,6 +7,11 @@ strictly separated. When useful, the two response types may be combined. For
 example, the logic for ``create_alternative_service_routes`` may instead be
 implemented as part of ``adjust_bookings_before_cargo_handling`` so route and
 vessel changes are decided together with shipment booking changes.
+
+This version changes exactly ONE of the four decision points relative to
+DefaultStrategy -- ``select_vessel_for_berth`` -- and leaves the other three
+returning ``None`` (full delegation to DefaultStrategy), so any effect on the
+Cumulative Resilience Loss can be attributed to this one change in isolation.
 """
 
 
@@ -20,40 +25,92 @@ class UserStrategy:
         current_time,
         waiting_since_by_vessel=None,
     ):
-        """PortResponseStrategy.
+        """PortResponseStrategy -- normalized Smith's-rule berth priority.
 
-        Select the next vessel to receive a berth at a congested port.
+        DefaultStrategy combines four independently-normalized factors
+        (40% wait, 30% carried TEU, 20% capacity, -10% workload) with fixed,
+        ad-hoc weights. Smith (1956) proved that, on a single server, ordering
+        jobs by decreasing weight/processing_time -- not by a separate
+        weighted sum of unrelated factors -- minimizes total weighted
+        completion time. A berth is exactly a single server: the "weight" of
+        a waiting vessel is the TEU it already carries (every one of those
+        TEU keeps accumulating transport time while the vessel waits), and
+        its "processing time" is the cargo-handling duration it will occupy
+        the berth with, computed with the same formula
+        ``berth_handling_cargo.py:_get_duration`` uses:
+        ``(discharging_teu + loading_teu) / (quay_crane_count * 45)``, with
+        ``quay_crane_count = max(1, int(loa / 55))``.
 
-        This function is called when the number of waiting vessels reaches the
-        configured port-congestion threshold. It is not called when the normal
-        first-in-first-out selection is sufficient.
-
-        Parameters
-        ----------
-        maritime_data_context:
-            The complete maritime data context.
-        port:
-            The ``Port`` where a berth is being assigned.
-        waiting_vessels:
-            Ordered list of vessels currently waiting at ``port``. The selected
-            vessel must be an object from this list.
-        available_berths:
-            List of currently available berth objects at ``port``. This can be
-            used to inspect available capacity, but this function selects a
-            vessel rather than a berth.
-        current_time:
-            Current simulation time as a ``datetime``.
-        waiting_since_by_vessel:
-            Mapping ``{vessel: waiting_start_time}``. It may be ``None``.
-            Use it to calculate how long each vessel has waited.
-
-        Returns
-        -------
-        Vessel
-            Return exactly one vessel contained in ``waiting_vessels``.
-            Returning another object raises a ``ValueError``.
+        The one thing an earlier version of this file got wrong: it used that
+        ratio raw and unbounded, so a vessel with ~0 handling workload at this
+        stop (large carried TEU, nothing to load/discharge here) produced an
+        arbitrarily huge score that could dominate every other vessel in the
+        queue regardless of how long they had been waiting. This version
+        keeps DefaultStrategy's own safeguard -- min-max normalization to
+        [0, 1] within the current waiting group -- applied to the Smith ratio
+        itself, then blends it with a normalized waiting-time term for
+        fairness, exactly the way DefaultStrategy blends its own factors.
         """
-        return None
+        if not waiting_vessels:
+            return None
+        waiting_since_by_vessel = waiting_since_by_vessel or {}
+
+        def waiting_hours(vessel):
+            waiting_since = waiting_since_by_vessel.get(vessel, current_time)
+            return max(0.0, (current_time - waiting_since).total_seconds() / 3600.0)
+
+        def carried_teu(vessel):
+            return sum(
+                getattr(shipment, "teu_size", 0) or 0
+                for shipment in getattr(vessel, "carried_shipments", [])
+            )
+
+        def quay_crane_count(vessel):
+            vessel_class = getattr(vessel, "vessel_class", None)
+            loa = getattr(vessel_class, "loa", 0) or 0
+            return max(1, int(loa / 55))
+
+        def handling_workload(vessel):
+            try:
+                discharging_teu = sum(
+                    getattr(shipment, "teu_size", 0) or 0
+                    for shipment in vessel.get_discharging_shipments_at_current_segment()
+                )
+                loading_teu = sum(
+                    getattr(shipment, "teu_size", 0) or 0
+                    for shipment in vessel.get_loading_shipments_at_next_segment()
+                )
+                return discharging_teu + loading_teu
+            except (AttributeError, TypeError, ValueError):
+                return 0.0
+
+        def smith_ratio(vessel):
+            estimated_service_hours = max(
+                handling_workload(vessel) / (quay_crane_count(vessel) * 45.0),
+                0.1,
+            )
+            return carried_teu(vessel) / estimated_service_hours
+
+        def normalize(values):
+            minimum = min(values)
+            maximum = max(values)
+            if maximum == minimum:
+                return [0.0] * len(values)
+            span = maximum - minimum
+            return [(value - minimum) / span for value in values]
+
+        smith_scores = normalize([smith_ratio(vessel) for vessel in waiting_vessels])
+        waiting_scores = normalize([waiting_hours(vessel) for vessel in waiting_vessels])
+
+        priority_scores = [
+            0.7 * smith_score + 0.3 * waiting_score
+            for smith_score, waiting_score in zip(smith_scores, waiting_scores)
+        ]
+
+        return max(
+            enumerate(waiting_vessels),
+            key=lambda item: (priority_scores[item[0]], -item[0]),
+        )[1]
 
     @staticmethod
     def create_alternative_service_routes(context, now, vessel=None):

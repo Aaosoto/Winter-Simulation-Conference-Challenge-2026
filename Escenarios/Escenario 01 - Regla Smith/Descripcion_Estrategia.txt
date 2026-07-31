@@ -1,0 +1,104 @@
+DESCRIPCIÓN DE LA ESTRATEGIA DESARROLLADA
+WSC 2026 Simulation Challenge — response_strategies/user_strategy.py
+==============================================================================
+
+ESTADO ACTUAL (última versión implementada)
+------------------------------------------------------------------------------
+De los 4 puntos de decisión de UserStrategy, se modificó UNO solo:
+select_vessel_for_berth. Los otros tres (create_alternative_service_routes,
+assign_associated_bookings, adjust_bookings_before_cargo_handling) devuelven
+None y delegan por completo en DefaultStrategy.
+
+Esto es intencional: tras dos intentos anteriores que empeoraron el sistema
+(ver "HISTORIAL" más abajo), se adoptó una metodología de UN CAMBIO AISLADO
+POR VEZ, verificado contra un control, antes de tocar el siguiente método.
+
+------------------------------------------------------------------------------
+EL CAMBIO: select_vessel_for_berth — regla de Smith normalizada
+------------------------------------------------------------------------------
+Qué decide: qué buque en cola recibe el próximo muelle libre en un puerto
+congestionado.
+
+DefaultStrategy usa un score de 4 factores independientes normalizados
+(min-max) y combinados con pesos fijos:
+    0.4 x tiempo_de_espera + 0.3 x TEU_cargado + 0.2 x capacidad
+    - 0.1 x carga_de_trabajo_esperada
+
+La mejora aplicada reemplaza los 3 factores de carga/capacidad/workload por
+un único ratio teóricamente fundamentado: la regla de Smith (1956), que
+prueba que en un servidor único (un muelle es exactamente eso) ordenar por
+peso / tiempo_de_servicio minimiza el tiempo de finalización ponderado total.
+
+  - "peso" = TEU que el buque ya carga (cada TEU sigue acumulando tiempo de
+    tránsito mientras el buque espera).
+  - "tiempo de servicio" = duración estimada de manejo de carga en ese
+    muelle, calculada con la MISMA fórmula real que usa el motor de
+    simulación (simulation_model/berth_handling_cargo.py:_get_duration):
+        (TEU_a_descargar + TEU_a_cargar) / (num_gruas_de_muelle x 45)
+        num_gruas_de_muelle = max(1, int(eslora_del_buque / 55))
+
+  ratio_smith = TEU_cargado / tiempo_de_servicio_estimado
+
+Ese ratio se normaliza con min-max dentro del grupo de buques en espera
+(exactamente como hace DefaultStrategy con sus propios factores) y se
+combina 70% ratio_smith + 30% tiempo_de_espera_normalizado, con desempate
+por orden de llegada a la cola.
+
+Por qué la normalización es clave: una primera versión de este mismo cambio
+usaba el ratio SIN acotar, lo que permitía que un buque con casi nada que
+manejar en ese puerto (denominador cercano a 0) obtuviera un score
+desproporcionadamente alto y monopolizara la prioridad, sin importar cuánto
+llevaran esperando los demás. Acotar el ratio a [0,1] dentro del grupo en
+espera — igual que hace el default — corrige ese defecto.
+
+------------------------------------------------------------------------------
+HISTORIAL — qué se probó antes y por qué se descartó
+------------------------------------------------------------------------------
+1) "Aggressive Evacuation" (no desarrollada en esta conversación, analizada
+   como referencia externa): forzaba la descarga de carga no destinada al
+   puerto actual cuando un buque llegaba muy cargado DURANTE CUALQUIER
+   disrupción activa en la red (bandera global, no localizada al buque/ruta
+   realmente afectados). Resultado: Cumulative Resilience Loss = 112.04,
+   el ATT nunca se recupera y sigue subiendo hasta el día 360 (54.84 días
+   vs 19.73 del baseline).
+
+2) Primera versión propia (Smith's rule sin acotar en select_vessel_for_berth
+   + penalización de congestión SIEMPRE ACTIVA, no solo durante disrupción,
+   en assign_associated_bookings): Cumulative Resilience Loss = 101.71,
+   casi tan malo como (1). La causa identificada: la penalización de
+   congestión actuaba todos los días, incluso sin disrupción (ya en el
+   período 1, días 1-5, el ATT estaba 22.5% por encima del baseline, antes
+   de que existiera cualquier disrupción), penalizando de forma
+   permanente el uso de los hubs de transbordo naturales de la red
+   (Singapore, Shanghai), que son eficientes por diseño, no un problema a
+   evitar.
+
+3) DefaultStrategy puro (los 4 métodos en None, sin ninguna personalización):
+   Cumulative Resilience Loss = 18.67, y SÍ se recupera (para el período 72,
+   día 356-360, el ATT ya está solo 3.4% por encima del baseline). Es la
+   barra de referencia a superar.
+
+Lección aplicada al cambio actual: actuar solo donde el default deja algo
+mensurable sobre la mesa (el score de 4 factores ad-hoc), sin introducir
+activación incondicional ni magnitudes sin acotar.
+
+------------------------------------------------------------------------------
+VERIFICACIÓN REALIZADA HASTA AHORA
+------------------------------------------------------------------------------
+- Prueba corta (warm-up 20 días + 30 días medidos, mismo seed=2026,
+  escenario con disrupción): corre sin excepciones, ATT en rango plausible
+  (13-19 días durante el tramo probado).
+- PENDIENTE: corrida completa (warm-up 140 + 360 días medidos) para calcular
+  el Cumulative Resilience Loss real de este cambio y compararlo contra el
+  control de DefaultStrategy puro (18.67).
+
+------------------------------------------------------------------------------
+PRÓXIMO PASO PLANEADO (aún no implementado)
+------------------------------------------------------------------------------
+Tras confirmar el resultado de este cambio en aislamiento, el siguiente
+candidato a probar —también de forma aislada, sin tocar select_vessel_for_berth
+de nuevo— es cambiar el costo del Dijkstra en assign_associated_bookings de
+distancia náutica pura a tiempo estimado de tránsito (distancia / velocidad
+de la ruta), manteniendo las restricciones duras de disrupción exactamente
+como en el default (solo activas cuando is_disruption_active es verdadero,
+nunca de forma permanente).
