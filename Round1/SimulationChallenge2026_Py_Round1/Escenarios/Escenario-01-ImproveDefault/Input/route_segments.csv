@@ -1,0 +1,53 @@
+RouteId,Sequence,FromPort,ToPort,SailingDistanceNm
+S7,1,Singapore,Colombo,1476
+S7,2,Colombo,Jebel Ali,1788
+S7,3,Jebel Ali,Colombo,1788
+S7,4,Colombo,Singapore,1476
+S1,1,Shanghai,Shenzhen,664
+S1,2,Shenzhen,Singapore,1417
+S1,3,Singapore,Colombo,1476
+S1,4,Colombo,Jebel Ali,1788
+S1,5,Jebel Ali,Piraeus,7842
+S1,6,Piraeus,Tanger Med,1398
+S1,7,Tanger Med,Rotterdam,1048
+S1,8,Rotterdam,Hamburg,233
+S1,9,Hamburg,Rotterdam,233
+S1,10,Rotterdam,Tanger Med,1048
+S1,11,Tanger Med,Piraeus,1398
+S1,12,Piraeus,Jebel Ali,10164
+S1,13,Jebel Ali,Colombo,1788
+S1,14,Colombo,Singapore,1476
+S1,15,Singapore,Shanghai,2075
+S2,1,Tianjin,Qingdao,213
+S2,2,Qingdao,Shanghai,294
+S2,3,Shanghai,Xiamen,459
+S2,4,Xiamen,Shenzhen,238
+S2,5,Shenzhen,Kaohsiung,334
+S2,6,Kaohsiung,Busan,879
+S2,7,Busan,Tianjin,590
+S3,1,Singapore,Ho Chi Minh City,596
+S3,2,Ho Chi Minh City,Laem Chabang,369
+S3,3,Laem Chabang,Singapore,731
+S3,4,Singapore,Jakarta,479
+S3,5,Jakarta,Singapore,479
+S4,1,Busan,Qingdao,429
+S4,2,Qingdao,Shanghai,294
+S4,3,Shanghai,Kaohsiung,531
+S4,4,Kaohsiung,Los Angeles,12501
+S4,5,Los Angeles,Shanghai,16380
+S4,6,Shanghai,Busan,428
+S5,1,Shanghai,Shenzhen,664
+S5,2,Shenzhen,Singapore,1417
+S5,3,Singapore,Colombo,1476
+S5,4,Colombo,New Jersey,10433
+S5,5,New Jersey,Colombo,15416
+S5,6,Colombo,Singapore,1476
+S5,7,Singapore,Shanghai,2075
+S6,1,Hamburg,Rotterdam,233
+S6,2,Rotterdam,Tanger Med,1048
+S6,3,Tanger Med,New Jersey,3161
+S6,4,New Jersey,Cartagena,1819
+S6,5,Cartagena,New Jersey,1819
+S6,6,New Jersey,Tanger Med,3161
+S6,7,Tanger Med,Rotterdam,1048
+S6,8,Rotterdam,Hamburg,233

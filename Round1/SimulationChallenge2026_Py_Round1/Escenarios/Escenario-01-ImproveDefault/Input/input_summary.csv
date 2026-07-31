@@ -1,0 +1,7 @@
+File,One row represents,Required columns,Purpose
+ports.csv,A port,PortName|BerthCount,Creates ports and their berths
+demand_matrix.csv,An origin port with one annual TEU value per destination,Origin plus one column for every PortName,Creates OD demand pairs from positive matrix cells
+service_routes.csv,A cyclic liner service route,RouteId|RouteName|StartDayOfWeek,Creates route headers and initial schedule offsets
+route_segments.csv,An ordered sailing segment within a route,RouteId|Sequence|FromPort|ToPort|SailingDistanceNm,Creates route rotations and physical legs
+vessel_classes.csv,A vessel class,VesselClassName|TeuCapacity|SailingSpeedKnots|LOAMeters,Creates vessel capacity and sailing attributes
+route_plan.csv,A vessel deployment decision,RouteId|VesselClassName|VesselCount,Creates vessels and assigns them to service routes

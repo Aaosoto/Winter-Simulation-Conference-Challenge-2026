@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Port Network Simulation Dashboard</title>
+  <script src="vendor/plotly.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <h1>Port Network Simulation Dashboard</h1>
+      </div>
+      <div class="headerActions">
+        <label class="btn filePicker">
+          Upload Output Folder
+          <input id="folderInput" type="file" webkitdirectory multiple />
+        </label>
+      </div>
+    </header>
+
+    <div class="notice" id="fallbackNotice">
+      If the browser blocks automatic local CSV loading, choose the `SimulationChallenge2026/Output` folder above.
+      For ATT comparison, include `Baseline_ATT_By_Statistics_Interval.csv` in that folder.
+    </div>
+
+    <section class="cards">
+      <div class="card">
+        <div class="subtle">Main Risk Port</div>
+        <div class="metric" id="mainRiskPort">-</div>
+        <div class="subtle" id="mainRiskDetail">Highest congestion score</div>
+      </div>
+      <div class="card">
+        <div class="subtle">Route Utilization</div>
+        <div class="metric" id="networkUtilization">-</div>
+        <div class="subtle">Network average carried/capacity</div>
+      </div>
+      <div class="card">
+        <div class="subtle">Vessels Waiting</div>
+        <div class="metric" id="totalVesselsWaiting">-</div>
+        <div class="subtle">Average waiting for berth</div>
+      </div>
+      <div class="card">
+        <div class="subtle">Total Waiting Cargo (TEU)</div>
+        <div class="metric" id="totalWaitingTeu">-</div>
+        <div class="subtle">Origin + transshipment waiting cargo</div>
+      </div>
+      <div class="card">
+        <div class="subtle">Cumulative Resilience Loss</div>
+        <div class="metric" id="cumulativeResilienceLoss">-</div>
+        <div class="subtle" id="cumulativeResilienceLossDetail">Lower is better</div>
+      </div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-page="overview">Port</button>
+      <button class="tab" data-page="network">Network</button>
+      <button class="tab" data-page="vessels">Vessel</button>
+      <button class="tab" data-page="cargo">Cargo</button>
+      <button class="tab" data-page="kpi">Performance</button>
+    </nav>
+
+    <main>
+      <section id="overview" class="page active">
+        <div class="grid2">
+          <div class="card">
+            <div class="sectionHeader">
+              <div>
+                <h2>Top Ports by Waiting Cargo (TEU)</h2>
+                <div class="subtle">Compare origin and transshipment cargo waiting at each port.</div>
+              </div>
+              <div class="viewToggle" aria-label="Waiting cargo view">
+                <button class="viewToggleBtn active" data-port-waiting-view="bar">Bars</button>
+                <button class="viewToggleBtn" data-port-waiting-view="map">Map</button>
+              </div>
+            </div>
+            <div id="portBar" class="chart"></div>
+          </div>
+          <div class="card">
+            <h2>Selected Port Status</h2>
+            <div class="subtle">Interactive port drill-down using percentile-based congestion levels.</div>
+            <div class="controls">
+              <select id="portSelect"></select>
+              <button class="btn" id="openPortBtn">Open Details</button>
+            </div>
+            <div class="statusBox">
+              <div class="statusHeader">
+                <strong id="selectedPortName">-</strong>
+                <span id="selectedBadge" class="badge low">Stable</span>
+              </div>
+              <div class="statusLine"><span class="subtle">Waiting Cargo (TEU)</span><strong id="selectedTEU">-</strong></div>
+              <div class="statusLine"><span class="subtle">Vessels Waiting</span><strong id="selectedVessels">-</strong></div>
+            </div>
+            <div class="note" id="selectedInterpretation">Load simulation output to inspect port status.</div>
+          </div>
+        </div>
+        <div class="card sectionGap">
+          <div class="sectionHeader">
+            <div>
+              <h2>Top Ports by Waiting Vessels</h2>
+              <div class="subtle">Rank offshore vessel queues by port.</div>
+            </div>
+            <div class="viewToggle" aria-label="Waiting vessels view">
+              <button class="viewToggleBtn active" data-vessel-waiting-view="bar">Bars</button>
+              <button class="viewToggleBtn" data-vessel-waiting-view="map">Map</button>
+            </div>
+          </div>
+          <div id="vesselWaitingChart" class="chart"></div>
+        </div>
+      </section>
+
+      <section id="network" class="page">
+        <div class="gridEqual">
+          <div class="card">
+            <div class="sectionHeader">
+              <div>
+                <h2>Service Route Capacity and Utilization</h2>
+                <div class="subtle">Inspect S1-S7 capacity and utilization.</div>
+              </div>
+            </div>
+            <div id="routeBar" class="chart"></div>
+          </div>
+          <div class="card">
+            <h2>Major Cargo Flow Links</h2>
+            <div class="subtle">Levels combine percentile rank and share of total waiting cargo.</div>
+            <input id="flowSearch" placeholder="Search origin or destination..." />
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-sort="from">Origin</th>
+                    <th data-sort="to">Destination</th>
+                    <th class="num" data-sort="teu">TEU</th>
+                    <th>Level</th>
+                  </tr>
+                </thead>
+                <tbody id="flowTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="vessels" class="page">
+        <div class="gridEqual">
+          <div class="card">
+            <h2>Vessel State Distribution</h2>
+            <div class="subtle">Average vessel count by state.</div>
+            <div id="vesselPie" class="smallChart"></div>
+          </div>
+          <div class="card">
+            <h2>Vessel State Counts</h2>
+            <div class="subtle">Sailing, waiting, and service states.</div>
+            <div id="vesselTimeline" class="smallChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cargo" class="page">
+        <div class="gridEqual cargoGrid">
+          <div class="card">
+            <div class="sectionHeader">
+              <div>
+                <h2>Cargo Flow Heatmap</h2>
+                <div class="subtle" id="heatmapDescription">Waiting cargo (TEU) by origin-destination pair.</div>
+              </div>
+              <div class="viewToggle" aria-label="Cargo heatmap metric">
+                <button class="viewToggleBtn active" data-heatmap-view="waiting">Waiting</button>
+                <button class="viewToggleBtn" data-heatmap-view="transition">In Transition</button>
+                <button class="viewToggleBtn" data-heatmap-view="completed">Completed</button>
+              </div>
+            </div>
+            <div id="heatmap" class="heatmapChart"></div>
+          </div>
+          <div class="card">
+            <h2>Cargo Flow Control Panel</h2>
+            <div class="subtle">CSV-backed diagnostic actions.</div>
+            <div class="panelList">
+              <button class="actionCard" id="heatmapInsightBtn">Show OD heatmap interpretation</button>
+              <button class="actionCard" id="completionInsightBtn">Summarize cargo flow states</button>
+              <button class="actionCard" id="bottleneckInsightBtn">Detect bottleneck ports</button>
+            </div>
+            <div class="note">Completed TEU is cumulative; waiting and in-transition TEU are simulation averages.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="kpi" class="page">
+        <div class="card">
+          <h2>TEU-Weighted Average Transport Time (ATT) by Simulation Period</h2>
+          <div id="attPeriodTrend" class="chart"></div>
+        </div>
+        <div style="height:16px"></div>
+        <div class="card">
+          <h2>ATT Performance and Resilience Loss</h2>
+          <div id="resilienceLossChart" class="chart"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="modalContent">
+      <button class="close" id="closeModalBtn">Close</button>
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

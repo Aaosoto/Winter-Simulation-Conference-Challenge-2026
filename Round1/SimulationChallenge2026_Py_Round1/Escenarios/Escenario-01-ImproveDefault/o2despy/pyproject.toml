@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "o2despy"
+version = "2.0.0"
+description = "A Python library for Object-Oriented Discrete Event Simulation (O2DES) Framework"
+readme = "README.md"
+authors = [
+    {name = "C4NGP", email = "your.email@example.com"},
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "loguru>=0.7.0",
+    "numpy>=1.23.1",
+    "pandas>=1.4.3,<3.0.0",
+    "pyjson5>=1.6.0",
+    "sortedcontainers>=2.4.0,<3.0.0",
+]
+keywords = ["simulation", "discrete-event", "O2DES", "object-oriented"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "isort>=5.10.0",
+    "mypy>=0.990",
+]
+docs = [
+    "sphinx>=4.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["o2des*"]
+exclude = ["tests*", "demos*", "docs*"]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.setuptools.package-data]
+"o2des" = ["py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]
+ignore = []

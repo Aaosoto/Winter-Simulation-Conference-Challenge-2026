@@ -1,0 +1,7 @@
+VesselClassName,TeuCapacity,SailingSpeedKnots,LOAMeters
+Feeder,1800,20,150
+Feedermax,2800,20,200
+Panamax,5000,20,275
+Post-Panamax,8000,20,300
+Neo-Panamax,13000,20,366
+ULCV,18000,20,400
