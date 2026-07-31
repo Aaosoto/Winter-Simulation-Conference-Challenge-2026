@@ -1,0 +1,430 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+h1 {
+  margin: 8px 0 6px;
+  font-size: 32px;
+}
+
+h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+}
+
+.subtle {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.btn {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #172033;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(.96);
+}
+
+.filePicker input {
+  display: none;
+}
+
+.notice {
+  display: none;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.notice.visible {
+  display: block;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cards .card {
+  padding: 16px;
+}
+
+.cards .metric {
+  font-size: clamp(20px, 2.1vw, 28px);
+  overflow-wrap: anywhere;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.metric {
+  font-size: 30px;
+  font-weight: 800;
+  margin: 12px 0 4px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 700;
+  color: #475569;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #172033;
+  color: white;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.gridEqual {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.cargoGrid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, .85fr);
+}
+
+.chart {
+  width: 100%;
+  height: 380px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cargoGrid .sectionHeader {
+  flex-wrap: wrap;
+}
+
+.cargoGrid .viewToggle {
+  flex-wrap: wrap;
+}
+
+.sectionGap {
+  margin-top: 16px;
+}
+
+.viewToggle {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.viewToggleBtn {
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 6px 10px;
+}
+
+.viewToggleBtn.active {
+  background: #172033;
+  color: white;
+}
+
+.smallChart {
+  width: 100%;
+  height: 320px;
+}
+
+.heatmapChart {
+  width: 100%;
+  height: 430px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+th {
+  background: #f1f5f9;
+  color: #475569;
+  cursor: pointer;
+}
+
+td.num,
+th.num {
+  text-align: right;
+}
+
+.tableWrap {
+  margin-top: 14px;
+  overflow: auto;
+  max-height: 410px;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid #cbd5e1;
+}
+
+.critical {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.high {
+  background: #ffedd5;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.medium {
+  background: #fef9c3;
+  color: #a16207;
+  border-color: #fde68a;
+}
+
+.low {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.statusBox {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusHeader strong {
+  font-size: 24px;
+}
+
+.statusLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.note {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.panelList {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.actionCard {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 700;
+}
+
+.actionCard:hover {
+  background: #f8fafc;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  z-index: 20;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal.visible {
+  display: flex;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 8px;
+  max-width: 780px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+}
+
+.modalContent p {
+  line-height: 1.6;
+  color: #475569;
+}
+
+.close {
+  float: right;
+  border: 0;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.js-plotly-plot,
+.plot-container,
+.svg-container {
+  max-width: 100% !important;
+}
+
+@media (max-width: 1000px) {
+  .cards,
+  .grid2,
+  .gridEqual,
+  .cargoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .tabs {
+    overflow: auto;
+  }
+
+  .tab {
+    min-width: 110px;
+  }
+}

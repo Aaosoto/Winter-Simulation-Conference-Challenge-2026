@@ -1,0 +1,8 @@
+# O2DES Python Library Dependencies
+# ==================================
+
+loguru>=0.7.0
+numpy>=1.23.1
+pandas>=1.4.3,<3.0.0
+pyjson5>=1.6.0
+sortedcontainers>=2.4.0,<3.0.0
